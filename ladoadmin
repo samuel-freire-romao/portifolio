@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>SiteLab — Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #080B14; --bg-panel: #0F1526; --bg-panel-2: #131B31;
+            --primary: #00D9C0; --primary-dark: #06231F; --secondary: #FFB454;
+            --text: #E8ECF4; --text-dim: #8B95AC; --text-faint: #5C6478;
+            --border: rgba(232, 236, 244, 0.09); --border-strong: rgba(232, 236, 244, 0.16);
+            --danger: #FF8A84; --radius-sm: 8px; --radius-md: 14px; --radius-lg: 22px;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+        a { color: inherit; text-decoration: none; }
+        button, select, input { font-family: inherit; }
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+        p { margin: 0; }
+        :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+        .hidden { display: none !important; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem; }
+
+        .topbar { border-bottom: 1px solid var(--border); background: rgba(8, 11, 20, 0.9); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); }
+        .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem 0; }
+        .logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: .55rem; }
+        .logo-mark { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg, var(--primary), #00A78F); display: flex; align-items: center; justify-content: center; color: var(--primary-dark); font-weight: 700; font-size: .95rem; font-family: 'IBM Plex Mono', monospace; }
+        .logo .lab { color: var(--primary); }
+        .tag { font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--secondary); border: 1px solid rgba(255, 180, 84, .35); border-radius: 999px; padding: .15rem .55rem; letter-spacing: .08em; text-transform: uppercase; }
+        .topbar-right { display: flex; align-items: center; gap: .8rem; font-size: .85rem; color: var(--text-dim); }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .7rem 1.3rem; border-radius: 999px; font-weight: 600; font-size: .9rem; border: 1px solid transparent; cursor: pointer; transition: transform .2s ease, border-color .2s ease, color .2s ease; }
+        .btn-primary { background: var(--primary); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-1px); }
+        .btn-ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-sm { padding: .45rem .9rem; font-size: .8rem; }
+
+        .banner { margin: 1.2rem 0 0; padding: .8rem 1rem; border-radius: var(--radius-sm); font-size: .85rem; background: rgba(255, 180, 84, .08); border: 1px solid rgba(255, 180, 84, .3); color: var(--secondary); }
+
+        /* login */
+        .login-wrap { min-height: calc(100vh - 70px); display: flex; align-items: center; justify-content: center; padding: 2rem 1.25rem; }
+        .login-card { width: min(100%, 400px); background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; display: grid; gap: 1rem; }
+        .login-card h1 { font-size: 1.5rem; }
+        .login-card p.sub { color: var(--text-dim); font-size: .9rem; }
+        .field { display: grid; gap: .4rem; }
+        .field label { font-size: .8rem; color: var(--text-dim); font-weight: 600; }
+        .field input { width: 100%; background: rgba(255, 255, 255, .02); border: 1px solid var(--border-strong); border-radius: 12px; padding: .85rem 1rem; color: var(--text); font-size: .95rem; }
+        .field input:focus { border-color: rgba(0, 217, 192, .8); box-shadow: 0 0 0 3px rgba(0, 217, 192, .12); outline: none; }
+        .msg-error { color: var(--danger); font-size: .85rem; }
+
+        /* dashboard */
+        main { padding: 2rem 0 4rem; }
+        .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
+        .page-head h1 { font-size: clamp(1.5rem, 3vw, 2rem); }
+        .page-head p { color: var(--text-dim); font-size: .92rem; margin-top: .3rem; }
+
+        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.8rem; }
+        @media (min-width: 720px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+        .stat { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.2rem 1.3rem; }
+        .stat strong { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.9rem; line-height: 1.1; color: var(--text); }
+        .stat span { font-size: .8rem; color: var(--text-dim); }
+        .stat.accent strong { color: var(--primary); }
+
+        .filters { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+        .chip { background: transparent; color: var(--text-dim); border: 1px solid var(--border-strong); border-radius: 999px; padding: .45rem .95rem; font-size: .82rem; font-weight: 600; cursor: pointer; transition: border-color .2s ease, color .2s ease, background .2s ease; }
+        .chip:hover { color: var(--text); }
+        .chip.active { background: rgba(0, 217, 192, .12); border-color: rgba(0, 217, 192, .5); color: var(--primary); }
+
+        .orders { display: grid; gap: 1rem; }
+        .order { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.3rem 1.4rem; display: grid; gap: .9rem; }
+        .order-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+        .order-top h3 { font-size: 1.05rem; }
+        .order-meta { font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--text-faint); margin-top: .25rem; }
+        .order-client { font-size: .88rem; color: var(--text-dim); }
+        .order-client a { color: var(--primary); }
+        .order-desc { color: var(--text); font-size: .92rem; white-space: pre-wrap; word-break: break-word; }
+        .order-foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-top: .9rem; border-top: 1px solid var(--border); }
+        .order-prazo { font-size: .8rem; color: var(--text-dim); }
+        .order-prazo i { color: var(--secondary); margin-right: .35rem; }
+
+        .badge { display: inline-flex; align-items: center; gap: .4rem; font-size: .75rem; font-weight: 600; padding: .25rem .7rem; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--text-dim); }
+        .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .badge.recebido { color: var(--secondary); border-color: rgba(255, 180, 84, .4); }
+        .badge.andamento { color: #6CB6FF; border-color: rgba(108, 182, 255, .4); }
+        .badge.pronto { color: var(--primary); border-color: rgba(0, 217, 192, .4); }
+        .badge.cancelado { color: var(--danger); border-color: rgba(255, 138, 132, .4); }
+
+        .status-select { background: var(--bg-panel-2); color: var(--text); border: 1px solid var(--border-strong); border-radius: 10px; padding: .5rem .8rem; font-size: .85rem; cursor: pointer; }
+        .status-select:focus { border-color: var(--primary); outline: none; }
+
+        .empty { text-align: center; padding: 3.5rem 1rem; color: var(--text-dim); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); }
+        .empty i { font-size: 1.6rem; color: var(--text-faint); margin-bottom: .8rem; display: block; }
+
+        /* abas, faturamento e graficos */
+        .tabs { display: flex; gap: .4rem; margin: 1.6rem 0 1.6rem; border-bottom: 1px solid var(--border); }
+        .tab { background: none; border: none; color: var(--text-dim); font-weight: 600; font-size: .92rem; padding: .7rem 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: .5rem; }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .stat.money strong { font-size: 1.5rem; }
+        .charts { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        @media (min-width: 900px) { .charts { grid-template-columns: 2fr 1fr; } .chart-wide { grid-column: 1 / -1; } }
+        .chart-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.2rem 1.3rem 1.3rem; }
+        .chart-card h3 { font-size: .98rem; }
+        .chart-card .hint { font-size: .78rem; color: var(--text-faint); margin: .2rem 0 1rem; }
+        .chart-box { position: relative; height: 260px; }
+        .valor-field { display: inline-flex; align-items: center; gap: .4rem; font-size: .85rem; color: var(--text-dim); background: var(--bg-panel-2); border: 1px solid var(--border-strong); border-radius: 10px; padding: 0 .3rem 0 .8rem; }
+        .valor-field:focus-within { border-color: var(--primary); }
+        .valor-input { width: 110px; background: transparent; border: none; color: var(--text); padding: .5rem .5rem .5rem 0; font-size: .85rem; }
+        .valor-input:focus { outline: none; }
+        .order-actions { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+        .order-admin-actions { display: flex; align-items: center; gap: .45rem; }
+        .order-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--border-strong); border-radius: 9px; background: transparent; color: var(--text-dim); cursor: pointer; }
+        .order-icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .order-icon-btn.delete:hover { border-color: var(--danger); color: var(--danger); }
+        .orders-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-panel); }
+        .orders-table { width: 100%; min-width: 1240px; border-collapse: collapse; }
+        .orders-table th, .orders-table td { padding: .75rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+        .orders-table th { color: var(--text-dim); font-size: .75rem; font-weight: 600; white-space: nowrap; }
+        .orders-table td { font-size: .82rem; }
+        .orders-table tbody tr:last-child td { border-bottom: 0; }
+        .orders-table .order-id-pair, .orders-table .order-customer-pair { display: flex; align-items: center; gap: .55rem; white-space: nowrap; }
+        .orders-table .order-id { color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+        .orders-table .order-date { color: var(--text-faint); }
+        .orders-table .order-description { min-width: 220px; max-width: 320px; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .orders-table .order-customer { min-width: 300px; }
+        .orders-table .order-customer-pair a { color: var(--primary); font-size: .78rem; }
+        .orders-table .order-service { min-width: 160px; }
+        .orders-table .valor-field { white-space: nowrap; }
+        .note { font-size: .78rem; color: var(--text-faint); margin-top: 1rem; }
+        dialog.order-dialog { width: min(100% - 2rem, 620px); max-height: min(90vh, 760px); padding: 0; overflow: auto; border: 1px solid var(--border-strong); border-radius: var(--radius-lg); background: var(--bg-panel); color: var(--text); }
+        dialog.order-dialog::backdrop { background: rgba(3, 5, 10, .72); backdrop-filter: blur(4px); }
+        .order-dialog form { display: grid; gap: 1rem; padding: 1.5rem; }
+        .order-dialog h2 { font-size: 1.35rem; }
+        .order-dialog .field input, .order-dialog .field select, .order-dialog .field textarea { width: 100%; background: var(--bg-panel-2); border: 1px solid var(--border-strong); border-radius: 9px; padding: .7rem .8rem; color: var(--text); font: inherit; }
+        .order-dialog .field textarea { min-height: 120px; resize: vertical; }
+        .order-dialog .dialog-actions { display: flex; justify-content: flex-end; gap: .7rem; flex-wrap: wrap; }
+        .order-dialog .dialog-error { min-height: 1.2rem; color: var(--danger); font-size: .85rem; }
+        .users-toolbar { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+        .users-search { min-width: min(100%, 280px); background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 10px; color: var(--text); padding: .65rem .85rem; }
+        .user-create-dialog { width: min(100% - 2rem, 520px) !important; }
+        .users-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-panel); }
+        .users-table { width: 100%; min-width: 1120px; border-collapse: collapse; }
+        .users-table th, .users-table td { padding: .75rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+        .users-table th { color: var(--text-dim); font-size: .75rem; font-weight: 600; white-space: nowrap; }
+        .users-table td { font-size: .82rem; }
+        .users-table tbody tr:last-child td { border-bottom: 0; }
+        .users-table input, .users-table select { width: 100%; min-width: 125px; padding: .55rem .65rem; background: var(--bg-panel-2); border: 1px solid var(--border-strong); border-radius: 8px; color: var(--text); }
+        .users-table input:focus, .users-table select:focus { border-color: var(--primary); outline: none; }
+        .users-table .user-password { min-width: 150px; }
+        .users-table .user-date { color: var(--text-faint); white-space: nowrap; }
+        .users-message { min-height: 1.5rem; margin: 0 0 .8rem; color: var(--primary); font-size: .88rem; }
+        .users-message.error { color: var(--danger); }
+        .finance-ledger { margin-top: 1.4rem; }
+        .finance-ledger h3 { margin-bottom: .8rem; font-size: 1rem; }
+        .finance-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-panel); }
+        .finance-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+        .finance-table th, .finance-table td { padding: .8rem 1rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+        .finance-table th { color: var(--text-dim); font-size: .76rem; font-weight: 600; white-space: nowrap; }
+        .finance-table td { font-size: .84rem; }
+        .finance-table tbody tr:last-child td { border-bottom: 0; }
+        .finance-table .amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a href="index.html" class="logo" aria-label="Voltar ao site">
+                <span class="logo-mark">S</span><span>Site<span class="lab">Lab</span></span>
+                <span class="tag">Admin</span>
+            </a>
+            <div class="topbar-right hidden" id="topbar-right">
+                <span id="admin-email"></span>
+                <button class="btn btn-ghost btn-sm" id="logout-btn" type="button">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="login-wrap hidden" id="access-view">
+        <div class="login-card">
+            <h1>Acesso administrativo</h1>
+            <p class="sub" id="access-message" role="status"></p>
+            <a class="btn btn-primary" href="loginsitelab.html">Ir para o login principal</a>
+        </div>
+    </div>
+
+    <!-- PAINEL -->
+    <main class="hidden" id="dash-view">
+        <div class="container">
+            <div class="tabs" role="tablist" aria-label="Seções do painel">
+                <button class="tab active" type="button" role="tab" data-aba="pedidos"><i class="fa-solid fa-list-check"></i> Pedidos</button>
+                <button class="tab" type="button" role="tab" data-aba="faturamento"><i class="fa-solid fa-chart-column"></i> Faturamento</button>
+                <button class="tab" type="button" role="tab" data-aba="usuarios"><i class="fa-solid fa-users"></i> Usuários</button>
+            </div>
+
+            <div id="aba-pedidos">
+            <div class="page-head">
+                <div>
+                    <h1>Pedidos</h1>
+                    <p>Acompanhe e atualize o andamento de cada pedido.</p>
+                </div>
+                <button class="btn btn-ghost btn-sm" id="refresh-btn" type="button"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+            </div>
+
+            <div class="stats" id="stats"></div>
+            <div class="filters" id="filters" role="group" aria-label="Filtrar por status"></div>
+            <div class="orders-table-wrap" id="orders" aria-live="polite"></div>
+            </div>
+
+            <div id="aba-usuarios" class="hidden">
+                <div class="page-head">
+                    <div>
+                        <h1>Clientes e usuários</h1>
+                        <p>Adicione, edite e remova contas de clientes e administradores.</p>
+                    </div>
+                    <div class="users-toolbar">
+                        <input class="users-search" id="users-search" type="search" placeholder="Buscar por nome, e-mail ou telefone" aria-label="Buscar usuários">
+                        <button class="btn btn-ghost btn-sm" id="users-refresh" type="button"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+                        <button class="btn btn-primary btn-sm" id="open-create-user" type="button"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Adicionar usuário</button>
+                    </div>
+                </div>
+                <p class="users-message" id="users-message" role="status" aria-live="polite"></p>
+                <div class="users-table-wrap">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nome</th>
+                                <th scope="col">E-mail</th>
+                                <th scope="col">Telefone</th>
+                                <th scope="col">Perfil</th>
+                                <th scope="col">Cadastro</th>
+                                <th scope="col">Nova senha (opcional)</th>
+                                <th scope="col">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="aba-fat" class="hidden">
+                <div class="page-head">
+                    <div>
+                        <h1>Faturamento</h1>
+                        <p>Defina o valor de cada pedido na aba Pedidos. Pedidos prontos contam como faturado.</p>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" id="finance-refresh-btn" type="button"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+                </div>
+                <div class="filters" id="period-filters" role="group" aria-label="Filtrar por período"></div>
+                <div class="stats" id="fat-stats"></div>
+                <div class="charts hidden" id="finance-charts">
+                    <div class="chart-card chart-wide">
+                        <h3>Faturamento no período</h3>
+                        <p class="hint" id="fat-hint">Soma dos pedidos prontos</p>
+                        <div class="chart-box"><canvas id="chart-fat" role="img" aria-label="Gráfico de faturamento no período"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Faturamento por serviço</h3>
+                        <p class="hint">Pedidos prontos</p>
+                        <div class="chart-box"><canvas id="chart-servico" role="img" aria-label="Faturamento por tipo de serviço"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Pedidos por status</h3>
+                        <p class="hint">Todos os pedidos do período</p>
+                        <div class="chart-box"><canvas id="chart-status" role="img" aria-label="Pedidos por status"></canvas></div>
+                    </div>
+                </div>
+                <section class="finance-ledger hidden" id="finance-ledger" aria-labelledby="finance-ledger-title">
+                    <h3 id="finance-ledger-title">Pedidos no período selecionado</h3>
+                    <div class="finance-table-wrap">
+                        <table class="finance-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Data</th>
+                                    <th scope="col">Cliente</th>
+                                    <th scope="col">Serviço</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="amount">Valor</th>
+                                    <th scope="col" class="amount">Faturado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finance-ledger-rows"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <p class="note">O período usa a data em que o pedido foi criado.</p>
+            </div>
+        </div>
+    </main>
+
+    <dialog class="order-dialog" id="order-edit-dialog" aria-labelledby="order-edit-title">
+        <form id="order-edit-form">
+            <h2 id="order-edit-title">Editar pedido</h2>
+            <input type="hidden" name="id">
+            <div class="field">
+                <label for="edit-order-name">Nome do cliente</label>
+                <input id="edit-order-name" name="nome" maxlength="150" required>
+            </div>
+            <div class="field">
+                <label for="edit-order-email">E-mail</label>
+                <input id="edit-order-email" name="email" type="email" maxlength="150" required>
+            </div>
+            <div class="field">
+                <label for="edit-order-service">Serviço</label>
+                <input id="edit-order-service" name="tipo_servico" maxlength="150" required>
+            </div>
+            <div class="field">
+                <label for="edit-order-deadline">Prazo</label>
+                <input id="edit-order-deadline" name="prazo" maxlength="100" required>
+            </div>
+            <div class="field">
+                <label for="edit-order-description">Descrição</label>
+                <textarea id="edit-order-description" name="descricao" minlength="10" required></textarea>
+            </div>
+            <p class="dialog-error" id="order-edit-error" role="alert"></p>
+            <div class="dialog-actions">
+                <button class="btn btn-ghost" type="button" id="cancel-order-edit">Cancelar</button>
+                <button class="btn btn-primary" type="submit" id="save-order-edit">Salvar alterações</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="order-dialog user-create-dialog" id="user-create-dialog" aria-labelledby="user-create-title">
+        <form id="user-create-form">
+            <h2 id="user-create-title">Adicionar usuário</h2>
+            <div class="field">
+                <label for="new-user-name">Nome</label>
+                <input id="new-user-name" name="nome" maxlength="150" autocomplete="name" required>
+            </div>
+            <div class="field">
+                <label for="new-user-email">E-mail</label>
+                <input id="new-user-email" name="email" type="email" maxlength="150" autocomplete="email" required>
+            </div>
+            <div class="field">
+                <label for="new-user-phone">Telefone</label>
+                <input id="new-user-phone" name="telefone" maxlength="50" autocomplete="tel" required>
+            </div>
+            <div class="field">
+                <label for="new-user-password">Senha inicial</label>
+                <input id="new-user-password" name="password" type="password" minlength="6" autocomplete="new-password" required>
+            </div>
+            <div class="field">
+                <label for="new-user-role">Perfil</label>
+                <select id="new-user-role" name="tipo_usuario">
+                    <option value="cliente">Cliente</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <p class="dialog-error" id="user-create-error" role="alert"></p>
+            <div class="dialog-actions">
+                <button class="btn btn-ghost" type="button" id="cancel-create-user">Cancelar</button>
+                <button class="btn btn-primary" id="create-user-btn" type="submit"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Adicionar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        async function apiRequest(url, values = {}) {
+            const response = await fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body: new URLSearchParams(values),
+            });
+            const result = await parseApiResponse(response);
+            if (!response.ok || !result.success) throw new Error(result.message || 'Não foi possível concluir a solicitação.');
+            return result;
+        }
+
+        async function apiGet(url) {
+            const response = await fetch(url, { credentials: 'same-origin' });
+            const result = await parseApiResponse(response);
+            if (!response.ok || !result.success) throw new Error(result.message || 'Não foi possível concluir a solicitação.');
+            return result;
+        }
+
+        async function parseApiResponse(response) {
+            try {
+                return await response.json();
+            } catch (error) {
+                throw new Error('O servidor não retornou JSON. Abra o painel pelo servidor PHP (URL http:// ou https://), não por file://.');
+            }
+        }
+
+        const STATUS = [
+            { value: 'recebido', label: 'Recebido', cls: 'recebido' },
+            { value: 'em_andamento', label: 'Em andamento', cls: 'andamento' },
+            { value: 'pronto', label: 'Pronto', cls: 'pronto' },
+            { value: 'cancelado', label: 'Cancelado', cls: 'cancelado' },
+        ];
+        const statusInfo = (v) => STATUS.find(s => s.value === v) || STATUS[0];
+
+        const $ = (id) => document.getElementById(id);
+        let pedidos = [];
+        let usuarios = [];
+        let currentAdminId = null;
+        let filtro = 'todos';
+
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const fmtData = (iso) => {
+            const d = new Date(iso);
+            return isNaN(d) ? '' : d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        };
+
+        /* ---------- dados ---------- */
+        function normalizar(p) {
+            return {
+                id: p.id,
+                nome: p.nome,
+                email: p.email,
+                tipo: p.tipo_servico ?? p.tipo,
+                prazo: p.prazo,
+                descricao: p.descricao,
+                status: p.status === 'em andamento' ? 'em_andamento' : (p.status || 'recebido'),
+                data: p.created_at ?? p.criado_em,
+                valor: Number(p.valor) || 0,
+            };
+        }
+
+        async function carregar() {
+            try {
+                const result = await apiGet('admin_api.php?action=orders');
+                pedidos = result.orders.map(normalizar);
+                render();
+            } catch (error) {
+                console.error(error);
+                $('orders').innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>${esc(error.message || 'Não foi possível carregar os pedidos.')}</div>`;
+                if (aba === 'faturamento') {
+                    $('fat-stats').innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>${esc(error.message || 'Não foi possível carregar o faturamento.')}</div>`;
+                    Object.keys(graficos).forEach(id => { graficos[id]?.destroy(); delete graficos[id]; });
+                }
+            }
+        }
+
+        async function carregarUsuarios() {
+            $('users-message').textContent = '';
+            $('users-message').classList.remove('error');
+            try {
+                const result = await apiGet('admin_api.php?action=users');
+                usuarios = result.users;
+                renderUsuarios();
+            } catch (error) {
+                console.error(error);
+                $('users-message').textContent = error.message || 'Não foi possível carregar os usuários.';
+                $('users-message').classList.add('error');
+            }
+        }
+
+        async function mudarStatus(id, novo) {
+            try {
+                await apiRequest('admin_api.php', { action: 'update', id: String(id), status: novo });
+            } catch (error) {
+                alert(error.message || 'Não foi possível atualizar o status.');
+                console.error(error);
+                carregar();
+                return;
+            }
+            const p = pedidos.find(p => String(p.id) === String(id));
+            if (p) p.status = novo;
+            render();
+        }
+
+        /* ---------- render ---------- */
+        function render() {
+            renderPedidos();
+            if (aba === 'faturamento') renderFaturamento();
+            if (aba === 'usuarios') renderUsuarios();
+        }
+
+        function renderPedidos() {
+            const cont = (s) => pedidos.filter(p => p.status === s).length;
+            $('stats').innerHTML = `
+                <div class="stat"><strong>${pedidos.length}</strong><span>Total de pedidos</span></div>
+                <div class="stat"><strong>${cont('recebido')}</strong><span>Novos</span></div>
+                <div class="stat"><strong>${cont('em_andamento')}</strong><span>Em andamento</span></div>
+                <div class="stat accent"><strong>${cont('pronto')}</strong><span>Prontos</span></div>`;
+
+            const chips = [{ value: 'todos', label: 'Todos' }, ...STATUS];
+            $('filters').innerHTML = chips.map(c =>
+                `<button type="button" class="chip ${filtro === c.value ? 'active' : ''}" data-filtro="${c.value}">${c.label}</button>`).join('');
+
+            const lista = filtro === 'todos' ? pedidos : pedidos.filter(p => p.status === filtro);
+            if (!lista.length) {
+                $('orders').innerHTML = '<div class="empty"><i class="fa-regular fa-folder-open"></i>Nenhum pedido cadastrado. Novos pedidos enviados pelo formulário aparecerão aqui.</div>';
+                return;
+            }
+            $('orders').innerHTML = `
+                <table class="orders-table">
+                    <thead><tr>
+                        <th scope="col">ID / Data</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Serviço</th>
+                        <th scope="col">Prazo</th>
+                        <th scope="col">Descrição</th>
+                        <th scope="col">Valor</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Ações</th>
+                    </tr></thead>
+                    <tbody>${lista.map(p => `
+                        <tr>
+                            <td><div class="order-id-pair"><span class="order-id">#${esc(p.id)}</span><span class="order-date">${esc(fmtData(p.data) || '—')}</span></div></td>
+                            <td class="order-customer"><div class="order-customer-pair"><span>${esc(p.nome)}</span><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div></td>
+                            <td class="order-service">${esc(p.tipo)}</td>
+                            <td>${esc(p.prazo)}</td>
+                            <td class="order-description">${esc(p.descricao)}</td>
+                            <td><label class="valor-field">R$ <input type="number" min="0" step="0.01" class="valor-input" data-id="${esc(p.id)}" value="${p.valor || ''}" placeholder="Valor" aria-label="Valor do pedido ${esc(p.id)}"></label></td>
+                            <td><select class="status-select" data-id="${esc(p.id)}" aria-label="Status do pedido ${esc(p.id)}">
+                                ${STATUS.map(s => `<option value="${s.value}" ${s.value === p.status ? 'selected' : ''}>${s.label}</option>`).join('')}
+                            </select></td>
+                            <td><div class="order-admin-actions">
+                                <button class="order-icon-btn" type="button" data-edit-order="${esc(p.id)}" aria-label="Editar pedido ${esc(p.id)}" title="Editar pedido"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                <button class="order-icon-btn delete" type="button" data-delete-order="${esc(p.id)}" aria-label="Excluir pedido ${esc(p.id)}" title="Excluir pedido"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                            </div></td>
+                        </tr>`).join('')}</tbody>
+                </table>`;
+        }
+
+        $('orders').addEventListener('click', async (event) => {
+            const editButton = event.target.closest('[data-edit-order]');
+            if (editButton) {
+                const order = pedidos.find(item => String(item.id) === editButton.dataset.editOrder);
+                if (!order) return;
+                const form = $('order-edit-form');
+                form.elements.id.value = order.id;
+                form.elements.nome.value = order.nome || '';
+                form.elements.email.value = order.email || '';
+                form.elements.tipo_servico.value = order.tipo || '';
+                form.elements.prazo.value = order.prazo || '';
+                form.elements.descricao.value = order.descricao || '';
+                $('order-edit-error').textContent = '';
+                $('order-edit-dialog').showModal();
+                return;
+            }
+
+            const deleteButton = event.target.closest('[data-delete-order]');
+            if (!deleteButton) return;
+            const id = deleteButton.dataset.deleteOrder;
+            if (!confirm(`Excluir permanentemente o pedido #${id}? Esta ação não pode ser desfeita.`)) return;
+            deleteButton.disabled = true;
+            try {
+                await apiRequest('admin_api.php', { action: 'order-delete', id });
+                pedidos = pedidos.filter(item => String(item.id) !== id);
+                render();
+            } catch (error) {
+                alert(error.message || 'Não foi possível excluir o pedido.');
+                deleteButton.disabled = false;
+            }
+        });
+
+        $('cancel-order-edit').addEventListener('click', () => $('order-edit-dialog').close());
+        $('order-edit-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const submitButton = $('save-order-edit');
+            const errorMessage = $('order-edit-error');
+            errorMessage.textContent = '';
+            submitButton.disabled = true;
+            const values = Object.fromEntries(new FormData(form));
+            try {
+                await apiRequest('admin_api.php', { action: 'order-update', ...values });
+                const order = pedidos.find(item => String(item.id) === String(values.id));
+                if (order) {
+                    order.nome = values.nome;
+                    order.email = values.email;
+                    order.tipo = values.tipo_servico;
+                    order.prazo = values.prazo;
+                    order.descricao = values.descricao;
+                }
+                $('order-edit-dialog').close();
+                render();
+            } catch (error) {
+                errorMessage.textContent = error.message || 'Não foi possível salvar as alterações do pedido.';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        function renderUsuarios() {
+            const query = $('users-search').value.trim().toLocaleLowerCase('pt-BR');
+            const list = usuarios.filter(user => [user.nome, user.email, user.telefone].some(value =>
+                String(value ?? '').toLocaleLowerCase('pt-BR').includes(query)));
+            if (!list.length) {
+                $('users-list').innerHTML = '<tr><td colspan="7">Nenhum usuário encontrado.</td></tr>';
+                return;
+            }
+
+            $('users-list').innerHTML = list.map(user => `
+                <tr data-user-id="${esc(user.id)}">
+                    <td><input name="nome" value="${esc(user.nome)}" maxlength="150" required aria-label="Nome de ${esc(user.email)}"></td>
+                    <td><input name="email" type="email" value="${esc(user.email)}" maxlength="150" required aria-label="E-mail de ${esc(user.nome)}"></td>
+                    <td><input name="telefone" value="${esc(user.telefone)}" maxlength="50" required aria-label="Telefone de ${esc(user.nome)}"></td>
+                    <td><select name="tipo_usuario" aria-label="Perfil de ${esc(user.nome)}" ${String(user.id) === String(currentAdminId) ? 'disabled' : ''}>
+                        <option value="cliente" ${user.tipo_usuario === 'cliente' ? 'selected' : ''}>Cliente</option>
+                        <option value="admin" ${user.tipo_usuario === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select></td>
+                    <td class="user-date">${esc(fmtData(user.criado_em))}</td>
+                    <td><input class="user-password" name="new_password" type="password" minlength="6" autocomplete="new-password" placeholder="Manter atual" aria-label="Nova senha de ${esc(user.nome)}"></td>
+                    <td><div class="order-admin-actions">
+                        <button class="btn btn-primary btn-sm" type="button" data-save-user="${esc(user.id)}"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Salvar</button>
+                        ${String(user.id) !== String(currentAdminId) ? `<button class="order-icon-btn delete" type="button" data-delete-user="${esc(user.id)}" aria-label="Remover usuário ${esc(user.nome)}" title="Remover usuário"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>` : ''}
+                    </div></td>
+                </tr>`).join('');
+        }
+
+        $('users-search').addEventListener('input', renderUsuarios);
+        $('users-refresh').addEventListener('click', carregarUsuarios);
+        $('open-create-user').addEventListener('click', () => {
+            $('user-create-error').textContent = '';
+            $('users-message').textContent = '';
+            $('users-message').classList.remove('error');
+            $('user-create-dialog').showModal();
+        });
+        $('cancel-create-user').addEventListener('click', () => $('user-create-dialog').close());
+        $('user-create-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const submitButton = $('create-user-btn');
+            const values = Object.fromEntries(new FormData(form));
+            submitButton.disabled = true;
+            $('user-create-error').textContent = '';
+            try {
+                await apiRequest('admin_api.php', { action: 'user-create', ...values });
+                form.reset();
+                $('user-create-dialog').close();
+                await carregarUsuarios();
+                $('users-message').classList.remove('error');
+                $('users-message').textContent = 'Usuário adicionado com sucesso.';
+            } catch (error) {
+                $('user-create-error').textContent = error.message || 'Não foi possível adicionar o usuário.';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+        $('users-list').addEventListener('click', async (event) => {
+            const deleteButton = event.target.closest('[data-delete-user]');
+            if (deleteButton) {
+                const user = usuarios.find(item => String(item.id) === deleteButton.dataset.deleteUser);
+                if (!user || !window.confirm(`Remover o usuário ${user.nome} (${user.email})? Esta ação não pode ser desfeita.`)) return;
+                deleteButton.disabled = true;
+                $('users-message').classList.remove('error');
+                $('users-message').textContent = '';
+                try {
+                    await apiRequest('admin_api.php', { action: 'user-delete', id: deleteButton.dataset.deleteUser });
+                    await carregarUsuarios();
+                    $('users-message').textContent = 'Usuário removido com sucesso.';
+                } catch (error) {
+                    $('users-message').textContent = error.message || 'Não foi possível remover o usuário.';
+                    $('users-message').classList.add('error');
+                    deleteButton.disabled = false;
+                }
+                return;
+            }
+            const button = event.target.closest('[data-save-user]');
+            if (!button) return;
+            const row = button.closest('tr');
+            const values = {
+                action: 'user-update',
+                id: button.dataset.saveUser,
+                nome: row.querySelector('[name="nome"]').value,
+                email: row.querySelector('[name="email"]').value,
+                telefone: row.querySelector('[name="telefone"]').value,
+                tipo_usuario: row.querySelector('[name="tipo_usuario"]').value,
+                new_password: row.querySelector('[name="new_password"]').value,
+            };
+            button.disabled = true;
+            $('users-message').classList.remove('error');
+            $('users-message').textContent = '';
+            try {
+                await apiRequest('admin_api.php', values);
+                $('users-message').textContent = 'Dados do usuário salvos.';
+                await carregarUsuarios();
+                $('users-message').textContent = 'Dados do usuário salvos.';
+            } catch (error) {
+                $('users-message').textContent = error.message || 'Não foi possível salvar as alterações.';
+                $('users-message').classList.add('error');
+                button.disabled = false;
+            }
+        });
+
+        $('filters').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-filtro]');
+            if (b) { filtro = b.dataset.filtro; render(); }
+        });
+        $('orders').addEventListener('change', (e) => {
+            if (e.target.matches('.status-select')) mudarStatus(e.target.dataset.id, e.target.value);
+            if (e.target.matches('.valor-input')) mudarValor(e.target.dataset.id, e.target.value);
+        });
+        $('refresh-btn').addEventListener('click', carregar);
+
+        /* ---------- valor e faturamento ---------- */
+        let aba = 'pedidos';
+        let periodo = '30';
+        const PERIODOS = [
+            { v: '7', l: '7 dias' }, { v: '30', l: '30 dias' }, { v: '90', l: '90 dias' },
+            { v: '365', l: '12 meses' }, { v: 'todos', l: 'Tudo' },
+        ];
+        const brl = (n) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const COR = { primary: '#00D9C0', ambar: '#FFB454', azul: '#6CB6FF', vermelho: '#FF8A84' };
+
+        async function mudarValor(id, texto) {
+            const valor = Math.max(0, parseFloat(texto) || 0);
+            try {
+                await apiRequest('admin_api.php', { action: 'update', id: String(id), valor: String(valor) });
+            } catch (error) {
+                alert(error.message || 'Não foi possível salvar o valor.');
+                console.error(error);
+                carregar();
+                return;
+            }
+            const p = pedidos.find(p => String(p.id) === String(id));
+            if (p) p.valor = valor;
+            if (aba === 'faturamento') renderFaturamento();
+        }
+
+        function noPeriodo() {
+            if (periodo === 'todos') return pedidos;
+            const limite = Date.now() - Number(periodo) * 864e5;
+            return pedidos.filter(p => new Date(p.data).getTime() >= limite);
+        }
+
+        // Agrupa por dia (períodos até 31 dias) ou por mês, preenchendo os vazios
+        function agruparFaturamento(prontos) {
+            const porDia = periodo !== 'todos' && Number(periodo) <= 31;
+            const chave = (d) => porDia
+                ? d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()
+                : d.getFullYear() + '-' + (d.getMonth() + 1);
+            const rotulo = (d) => porDia
+                ? d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+                : d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '');
+            const fim = new Date();
+            let ini;
+            if (periodo === 'todos') {
+                const datas = pedidos.map(p => new Date(p.data)).filter(d => !isNaN(d));
+                ini = datas.length ? new Date(Math.min(...datas)) : fim;
+            } else {
+                ini = new Date(Date.now() - Number(periodo) * 864e5);
+            }
+            const mapa = new Map();
+            const d = new Date(ini.getFullYear(), ini.getMonth(), porDia ? ini.getDate() : 1);
+            while (d <= fim) {
+                mapa.set(chave(d), { label: rotulo(d), total: 0 });
+                if (porDia) d.setDate(d.getDate() + 1); else d.setMonth(d.getMonth() + 1);
+            }
+            prontos.forEach(p => {
+                const g = mapa.get(chave(new Date(p.data)));
+                if (g) g.total += p.valor;
+            });
+            return [...mapa.values()];
+        }
+
+        const graficos = {};
+        function desenhar(id, config) {
+            graficos[id]?.destroy();
+            graficos[id] = new Chart($(id), config);
+        }
+
+        function renderFaturamento() {
+            $('period-filters').innerHTML = PERIODOS.map(p =>
+                `<button type="button" class="chip ${periodo === p.v ? 'active' : ''}" data-periodo="${p.v}">${p.l}</button>`).join('');
+
+            if (!pedidos.length) {
+                $('fat-stats').innerHTML = '<div class="empty"><i class="fa-solid fa-chart-column"></i>Ainda não há pedidos no banco. Depois que novos pedidos forem enviados, os valores aparecerão aqui.</div>';
+                $('finance-charts').classList.add('hidden');
+                $('finance-ledger').classList.add('hidden');
+                $('finance-ledger-rows').innerHTML = '';
+                Object.keys(graficos).forEach(id => { graficos[id]?.destroy(); delete graficos[id]; });
+                $('fat-hint').textContent = 'Aguardando pedidos';
+                return;
+            }
+            $('finance-charts').classList.remove('hidden');
+            $('finance-ledger').classList.remove('hidden');
+
+            const lista = noPeriodo();
+            $('finance-ledger-rows').innerHTML = lista.length
+                ? lista.map(p => {
+                    const ready = p.status === 'pronto';
+                    return `<tr>
+                        <td>${esc(fmtData(p.data) || '—')}</td>
+                        <td>${esc(p.nome || '—')}</td>
+                        <td>${esc(p.tipo || '—')}</td>
+                        <td>${esc(statusInfo(p.status).label)}</td>
+                        <td class="amount">${brl(p.valor)}</td>
+                        <td class="amount">${ready ? brl(p.valor) : '—'}</td>
+                    </tr>`;
+                }).join('')
+                : '<tr><td colspan="6">Nenhum pedido dentro do período selecionado.</td></tr>';
+            const prontos = lista.filter(p => p.status === 'pronto');
+            const andamento = lista.filter(p => p.status === 'em_andamento' || p.status === 'recebido');
+            const faturado = prontos.reduce((s, p) => s + p.valor, 0);
+            const aReceber = andamento.reduce((s, p) => s + p.valor, 0);
+            const ticket = prontos.length ? faturado / prontos.length : 0;
+
+            $('fat-stats').innerHTML = `
+                <div class="stat money accent"><strong>${brl(faturado)}</strong><span>Faturado (prontos)</span></div>
+                <div class="stat money"><strong>${brl(aReceber)}</strong><span>Em aberto (novos e em andamento)</span></div>
+                <div class="stat money"><strong>${brl(ticket)}</strong><span>Ticket médio</span></div>
+                <div class="stat"><strong>${prontos.length}</strong><span>Pedidos concluídos</span></div>`;
+
+            Chart.defaults.color = '#8B95AC';
+            Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+            Chart.defaults.borderColor = 'rgba(232, 236, 244, 0.09)';
+            const eixoBRL = { ticks: { callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') }, beginAtZero: true };
+            const tooltipBRL = { callbacks: { label: (c) => ' ' + brl(c.parsed.y ?? c.parsed.x ?? c.parsed) } };
+
+            // 1) faturamento no tempo
+            const serie = agruparFaturamento(prontos);
+            desenhar('chart-fat', {
+                type: 'bar',
+                data: { labels: serie.map(g => g.label), datasets: [{ data: serie.map(g => g.total), backgroundColor: COR.primary, borderRadius: 6, maxBarThickness: 36 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: tooltipBRL }, scales: { y: eixoBRL, x: { grid: { display: false } } } },
+            });
+
+            // 2) faturamento por serviço
+            const porServico = {};
+            prontos.forEach(p => { porServico[p.tipo] = (porServico[p.tipo] || 0) + p.valor; });
+            const ordem = Object.entries(porServico).sort((a, b) => b[1] - a[1]);
+            desenhar('chart-servico', {
+                type: 'bar',
+                data: { labels: ordem.map(o => o[0]), datasets: [{ data: ordem.map(o => o[1]), backgroundColor: COR.ambar, borderRadius: 6 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ' ' + brl(c.parsed.x) } } }, scales: { x: eixoBRL, y: { grid: { display: false } } } },
+            });
+
+            // 3) pedidos por status
+            desenhar('chart-status', {
+                type: 'doughnut',
+                data: {
+                    labels: STATUS.map(s => s.label),
+                    datasets: [{ data: STATUS.map(s => lista.filter(p => p.status === s.value).length), backgroundColor: [COR.ambar, COR.azul, COR.primary, COR.vermelho], borderColor: '#0F1526', borderWidth: 3 }],
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, usePointStyle: true } } } },
+            });
+
+            $('fat-hint').textContent = 'Soma dos pedidos prontos · ' + PERIODOS.find(p => p.v === periodo).l.toLowerCase();
+        }
+
+        $('period-filters').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-periodo]');
+            if (b) { periodo = b.dataset.periodo; renderFaturamento(); }
+        });
+        $('finance-refresh-btn').addEventListener('click', carregar);
+
+        document.querySelector('.tabs').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-aba]');
+            if (!b) return;
+            aba = b.dataset.aba;
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === b));
+            $('aba-pedidos').classList.toggle('hidden', aba !== 'pedidos');
+            $('aba-fat').classList.toggle('hidden', aba !== 'faturamento');
+            $('aba-usuarios').classList.toggle('hidden', aba !== 'usuarios');
+            if (aba === 'faturamento') carregar();
+            if (aba === 'usuarios') carregarUsuarios();
+        });
+
+        /* ---------- acesso ---------- */
+        function mostrarPainel(email) {
+            $('access-view').classList.add('hidden');
+            $('dash-view').classList.remove('hidden');
+            $('topbar-right').classList.remove('hidden');
+            $('admin-email').textContent = email || '';
+            carregar();
+        }
+
+        function mostrarAcesso(error) {
+            $('dash-view').classList.add('hidden');
+            $('topbar-right').classList.add('hidden');
+            $('access-message').textContent = error?.message === 'Acesso administrativo necessário.'
+                ? 'Entre pelo login principal com uma conta de administrador para acessar este painel.'
+                : 'Não foi possível validar o acesso ao painel. Confira a conexão com o banco de dados.';
+            $('access-view').classList.remove('hidden');
+        }
+
+        $('logout-btn').addEventListener('click', async () => {
+            try { await apiRequest('admin_api.php', { action: 'logout' }); }
+            catch (error) { console.error(error); }
+            window.location.href = 'loginsitelab.html';
+        });
+
+        (async function init() {
+            try {
+                const session = await apiGet('admin_api.php?action=session');
+                currentAdminId = session.id;
+                mostrarPainel(session.email);
+            } catch (error) {
+                mostrarAcesso(error);
+            }
+        })();
+    </script>
+</body>
+
+</html>
